@@ -1,0 +1,7 @@
+{
+  "name": "mmath-webhooks",
+  "version": "1.0.0",
+  "description": "Formspree → Notion webhook handlers for MMATH 2026",
+  "private": true,
+  "engines": { "node": ">=20" }
+}
