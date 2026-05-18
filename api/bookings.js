@@ -7,7 +7,6 @@ module.exports = async function handler(req, res) {
   try {
     const d = req.body;
 
-    // Note: several Notion property names have trailing spaces — must match exactly
     const properties = {
       'Last Name':          title(d['Last Name'] || d['last_name'] || ''),
       'First Name ':        rich(d['First Name'] || d['first_name'] || ''),
@@ -21,13 +20,11 @@ module.exports = async function handler(req, res) {
       'Source':             select('Formspree'),
     };
 
-    // Dates
     const checkIn = d['Check In Date'] || d['check_in'];
     const checkOut = d['Check Out'] || d['check_out'];
     if (checkIn)  properties['Check In Date '] = date(checkIn);
     if (checkOut) properties['Check Out']       = date(checkOut);
 
-    // Breakfast
     const breakfast = d['The Room Rate does not include breakfast. Do you want to add? '] || d['breakfast'];
     if (breakfast) properties['The Room Rate does not include breakfast. Do you want to add? '] = { multi_select: [{ name: breakfast }] };
 
