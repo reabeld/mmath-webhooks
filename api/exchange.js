@@ -39,6 +39,18 @@ module.exports = async function handler(req, res) {
         'Notion-Version': '2022-06-28',
         'Content-Type': 'application/json',
       },
-      body: JSON.stringify(
-}
+      body: JSON.stringify({ parent: { database_id: DB_ID }, properties }),
+    });
+
+    if (!response.ok) {
+      const err = await response.text();
+      console.error('exchange webhook error:', err);
+      return res.status(500).json({ error: err });
+    }
+
+    return res.status(200).json({ success: true });
+  } catch (err) {
+    console.error('exchange webhook error:', err.message);
+    return res.status(500).json({ error: err.message });
+  }
 }
