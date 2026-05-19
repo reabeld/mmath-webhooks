@@ -1,5 +1,3 @@
-const { createNotionPage, title, rich, email, phone, select, checkbox, date } = require('../lib/notion');
-
 const DB_ID = process.env.NOTION_DB_HOTEL_RESERVATIONS;
 
 module.exports = async function handler(req, res) {
@@ -7,28 +5,59 @@ module.exports = async function handler(req, res) {
   try {
     const d = req.body;
 
+    const str = (v) => (v && String(v).trim()) || null;
+
     const properties = {
-      'Last Name':          title(d['Last Name'] || d['last_name'] || ''),
-      'First Name ':        rich(d['First Name'] || d['first_name'] || ''),
-      'Email':              email(d['Email'] || d['email']),
-      'Phone':              phone(d['Phone'] || d['phone']),
-      'Company Name':       rich(d['Company Name'] || d['company'] || ''),
-      'Room Type ':         select(d['Room Type'] || d['room_type']),
-      'Amount of Rooms ':   select(d['Amount of Rooms'] || d['amount_of_rooms']),
-      'How Many guests per room': select(d['How Many guests per room'] || d['guests_per_room']),
-      'Comments':           rich(d['Comments'] || d['notes'] || d['message'] || ''),
-      'Source':             select('Formspree'),
+      'Last Name': { title: [{ text: { content: str(d['Last Name'] || d['last_name']) || 'Test' } }] },
+      'Source':    { select: { name: 'Formspree' } },
     };
 
-    const checkIn = d['Check In Date'] || d['check_in'];
-    const checkOut = d['Check Out'] || d['check_out'];
-    if (checkIn)  properties['Check In Date '] = date(checkIn);
-    if (checkOut) properties['Check Out']       = date(checkOut);
+    const firstName = str(d['First Name'] || d['first_name']);
+    if (firstName) properties['First Name '] = { rich_text: [{ text: { content: firstName } }] };
 
-    const breakfast = d['The Room Rate does not include breakfast. Do you want to add? '] || d['breakfast'];
-    if (breakfast) properties['The Room Rate does not include breakfast. Do you want to add? '] = { multi_select: [{ name: breakfast }] };
+    const emailVal = str(d['Email'] || d['email']);
+    if (emailVal) properties['Email'] = { email: emailVal };
 
-    await createNotionPage(DB_ID, properties);
+    const phoneVal = str(d['Phone'] || d['phone']);
+    if (phoneVal) properties['Phone'] = { phone_number: phoneVal };
+
+    const company = str(d['Company Name'] || d['company']);
+    if (company) properties['Company Name'] = { rich_text: [{ text: { content: company } }] };
+
+    const roomType = str(d['Room Type'] || d['room_type']);
+    if (roomType) properties['Room Type '] = { select: { name: roomType } };
+
+    const rooms = str(d['Amount of Rooms'] || d['amount_of_rooms']);
+    if (rooms) properties['Amount of Rooms '] = { select: { name: rooms } };
+
+    const guests = str(d['How Many guests per room'] || d['guests_per_room']);
+    if (guests) properties['How Many guests per room'] = { select: { name: guests } };
+
+    const comments = str(d['Comments'] || d['notes'] || d['message']);
+    if (comments) properties['Comments'] = { rich_text: [{ text: { content: comments } }] };
+
+    const checkIn = str(d['Check In Date'] || d['check_in']);
+    if (checkIn) properties['Check In Date '] = { date: { start: checkIn } };
+
+    const checkOut = str(d['Check Out'] || d['check_out']);
+    if (checkOut) properties['Check Out'] = { date: { start: checkOut } };
+
+    const res2 = await fetch('https://api.notion.com/v1/pages', {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${process.env.NOTION_TOKEN}`,
+        'Notion-Version': '2022-06-28',
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ parent: { database_id: DB_ID }, properties }),
+    });
+
+    if (!res2.ok) {
+      const err = await res2.text();
+      console.error('bookings webhook error:', err);
+      return res.status(500).json({ error: err });
+    }
+
     return res.status(200).json({ success: true });
   } catch (err) {
     console.error('bookings webhook error:', err.message);
