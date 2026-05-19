@@ -6,10 +6,7 @@ module.exports = async function handler(req, res) {
     const d = req.body;
     const str = (v) => (v && String(v).trim()) || null;
 
-    const fullName = str(d.full_name) || str(d.company) || 'Unknown';
-
     const props = {
-      'Full Name': { title: [{ text: { content: fullName } }] },
       'Application Status': { select: { name: 'Submitted' } },
       'Source': { select: { name: 'Formspree' } },
     };
@@ -20,8 +17,8 @@ module.exports = async function handler(req, res) {
     const emailVal = str(d.email);
     if (emailVal) props['Email'] = { email: emailVal };
 
-    const phone = str(d.phone);
-    if (phone) props['Phone'] = { phone_number: phone };
+    const fullName = str(d.full_name);
+    if (fullName) props['Full Name'] = { rich_text: [{ text: { content: fullName } }] };
 
     const title = str(d.title);
     if (title) props['Title / Position'] = { rich_text: [{ text: { content: title } }] };
@@ -31,9 +28,6 @@ module.exports = async function handler(req, res) {
 
     const motivation = str(d.motivation || d.why_attend);
     if (motivation) props['Why Attending'] = { rich_text: [{ text: { content: motivation } }] };
-
-    const notes = str(d.message || d.notes);
-    if (notes) props['Notes'] = { rich_text: [{ text: { content: notes } }] };
 
     const notionRes = await fetch('https://api.notion.com/v1/pages', {
       method: 'POST',
