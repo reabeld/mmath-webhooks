@@ -6,16 +6,16 @@ module.exports = async function handler(req, res) {
     const d = req.body;
     const str = (v) => (v && String(v).trim()) || null;
 
-    const company = str(d.company) || str(d.full_name) || 'Unknown';
+    const fullName = str(d.full_name) || str(d.company) || 'Unknown';
 
     const props = {
-      'Company': { title: [{ text: { content: company } }] },
+      'Full Name': { title: [{ text: { content: fullName } }] },
       'Application Status': { select: { name: 'Submitted' } },
       'Source': { select: { name: 'Formspree' } },
     };
 
-    const fullName = str(d.full_name);
-    if (fullName) props['Full Name'] = { rich_text: [{ text: { content: fullName } }] };
+    const company = str(d.company);
+    if (company) props['Company'] = { rich_text: [{ text: { content: company } }] };
 
     const emailVal = str(d.email);
     if (emailVal) props['Email'] = { email: emailVal };
