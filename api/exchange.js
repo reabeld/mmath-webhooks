@@ -17,8 +17,8 @@ module.exports = async function handler(req, res) {
     const emailVal = str(d.email);
     if (emailVal) props['Email'] = { email: emailVal };
 
-    const fullName = str(d.full_name);
-    if (fullName) props['Full Name'] = { rich_text: [{ text: { content: fullName } }] };
+    const Name = str(d.full_name);
+    if (fullName) props['Name'] = { rich_text: [{ text: { content: Name } }] };
 
     const title = str(d.title);
     if (title) props['Title / Position'] = { rich_text: [{ text: { content: title } }] };
